@@ -8,13 +8,21 @@ import {
   stageLabels,
   stages,
   type ApplicationField,
+  type ApplicationFieldErrors,
 } from "@/lib/applicationSchema";
+import { submitApplication } from "@/lib/submitApplication";
 
 type FieldName = ApplicationField;
 // Состояние формы — сырые строки из полей; стадия до выбора пустая и поэтому не тип Stage
 type Values = Record<FieldName, string>;
 type Errors = Partial<Record<FieldName, string>>;
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+type FormStatus =
+  | { kind: "idle" }
+  | { kind: "invalid" }
+  | { kind: "submitting" }
+  | { kind: "success"; message: string }
+  | { kind: "error"; message: string };
 
 const fieldOrder: FieldName[] = ["founderName", "email", "projectName", "stage", "problem", "demoUrl"];
 
@@ -87,15 +95,17 @@ function Field({
 export function ApplicationForm() {
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<Errors>({});
-  const [status, setStatus] = useState<"idle" | "invalid" | "valid">("idle");
+  const [status, setStatus] = useState<FormStatus>({ kind: "idle" });
 
   const errorCount = fieldOrder.filter((name) => errors[name]).length;
+  const isSubmitting = status.kind === "submitting";
 
   function handleChange(event: ChangeEvent<FieldElement>) {
     const name = event.target.name as FieldName;
     const value = event.target.value;
     setValues((prev) => ({ ...prev, [name]: value }));
-    if (status === "valid") setStatus("idle");
+    // После успешной отправки изменённые данные — уже другая заявка, старое сообщение скрываем
+    if (status.kind === "success") setStatus({ kind: "idle" });
     // Уже показанную ошибку пересчитываем на лету, чтобы она исчезла, как только поле исправлено
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   }
@@ -108,29 +118,47 @@ export function ApplicationForm() {
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  // Общий путь для ошибок клиентской проверки и ошибок валидации с сервера
+  function showFieldErrors(form: HTMLFormElement, fieldErrors: ApplicationFieldErrors) {
+    const nextErrors: Errors = {};
+    for (const name of fieldOrder) {
+      const message = fieldErrors[name]?.[0];
+      if (message) nextErrors[name] = message;
+    }
+    setErrors(nextErrors);
+    setStatus({ kind: "invalid" });
+
+    const firstInvalid = fieldOrder.find((name) => nextErrors[name]);
+    // Фокус переносим после отрисовки, чтобы скринридер прочитал поле уже вместе с ошибкой
+    if (firstInvalid) requestAnimationFrame(() => (form.elements.namedItem(firstInvalid) as FieldElement | null)?.focus());
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) return;
     const form = event.currentTarget;
 
     const result = applicationSchema.safeParse(values);
-    const nextErrors: Errors = {};
     if (!result.success) {
-      const fieldErrors = z.flattenError(result.error).fieldErrors;
-      for (const name of fieldOrder) {
-        const message = fieldErrors[name]?.[0];
-        if (message) nextErrors[name] = message;
-      }
-    }
-    setErrors(nextErrors);
-
-    const firstInvalid = fieldOrder.find((name) => nextErrors[name]);
-    if (firstInvalid) {
-      setStatus("invalid");
-      // Фокус переносим после отрисовки, чтобы скринридер прочитал поле уже вместе с ошибкой
-      requestAnimationFrame(() => (form.elements.namedItem(firstInvalid) as FieldElement | null)?.focus());
+      showFieldErrors(form, z.flattenError(result.error).fieldErrors);
       return;
     }
-    setStatus("valid");
+
+    setErrors({});
+    setStatus({ kind: "submitting" });
+    // Отправляются уже проверенные данные с обрезанными пробелами; сервер проверяет их той же схемой
+    const response = await submitApplication(result.data);
+
+    if (response.status === "success") setStatus({ kind: "success", message: response.message });
+    else if (response.status === "invalid") showFieldErrors(form, response.errors);
+    else setStatus({ kind: "error", message: response.message });
+  }
+
+  function handleClear() {
+    setValues(initialValues);
+    setErrors({});
+    setStatus({ kind: "idle" });
+    requestAnimationFrame(() => document.getElementById(fieldOrder[0])?.focus());
   }
 
   function fieldProps(name: FieldName) {
@@ -203,23 +231,39 @@ export function ApplicationForm() {
       </div>
 
       <div className="mt-12 flex flex-col gap-6 md:mt-14">
-        <button type="submit" className="btn btn-primary min-h-16 w-full px-10 text-xl sm:w-fit">
-          Подать заявку <span aria-hidden="true" className="arrow">→</span>
+        {/* aria-disabled вместо disabled: кнопка не теряет фокус, повторную отправку блокирует handleSubmit */}
+        <button
+          type="submit"
+          aria-disabled={isSubmitting || undefined}
+          className="btn btn-primary min-h-16 w-full px-10 text-xl sm:w-fit"
+        >
+          {isSubmitting ? (
+            "Отправляем..."
+          ) : (
+            <>
+              Подать заявку <span aria-hidden="true" className="arrow">→</span>
+            </>
+          )}
         </button>
 
         {/* Живая область существует постоянно, чтобы скринридеры гарантированно озвучивали изменения */}
         <div aria-live="polite">
-          {status === "invalid" && errorCount > 0 && (
+          {status.kind === "invalid" && errorCount > 0 && (
             <p className="w-fit border-l-4 border-orange py-1 pl-4 font-medium">
               Проверьте отмеченные поля. Ошибок: {errorCount}.
             </p>
           )}
-          {status === "valid" && (
-            <p className="bg-yellow px-5 py-4 font-medium">
-              Форма заполнена корректно. Серверная отправка будет подключена позже.
-            </p>
+          {status.kind === "success" && <p className="bg-yellow px-5 py-4 font-medium">{status.message}</p>}
+          {status.kind === "error" && (
+            <p className="border-l-4 border-orange py-1 pl-4 font-medium">{status.message}</p>
           )}
         </div>
+
+        {status.kind === "success" && (
+          <button type="button" onClick={handleClear} className="btn btn-outline w-full sm:w-fit">
+            Очистить форму
+          </button>
+        )}
       </div>
     </form>
   );

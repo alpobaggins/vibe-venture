@@ -83,3 +83,8 @@ export type ApplicationInput = z.input<typeof applicationSchema>;
 export type Application = z.output<typeof applicationSchema>;
 export type ApplicationField = keyof ApplicationInput;
 export type ApplicationFieldErrors = Partial<Record<ApplicationField, string[]>>;
+
+// Формат ответов POST /api/applications — общий для роута и клиента
+export type ApplicationApiResponse =
+  | { success: true; message: string }
+  | { success: false; message: string; errors?: ApplicationFieldErrors };

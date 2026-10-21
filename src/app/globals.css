@@ -160,6 +160,16 @@
     color: var(--background);
   }
 
+  /* Кнопка во время отправки: цвет не меняется при наведении, курсор показывает ожидание */
+  .btn[aria-disabled="true"] {
+    cursor: progress;
+  }
+
+  .btn-primary[aria-disabled="true"]:hover {
+    background: var(--orange);
+    color: var(--foreground);
+  }
+
   /* Стрелка набирается Inter: в Oswald нет этого символа */
   .arrow {
     font-family: var(--font-sans);
