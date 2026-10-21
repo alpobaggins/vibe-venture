@@ -25,12 +25,12 @@ const initialValues: Values = {
   demoUrl: "",
 };
 
-// Ограничения показываются нативной подсказкой (title), а скринридерам — скрытым текстом в описании поля
+// Короткие ограничения видны рядом с подписью и входят в описание поля для скринридеров
 const fieldRules: Partial<Record<FieldName, string>> = {
-  founderName: "От 2 до 80 символов.",
-  projectName: "От 2 до 120 символов.",
-  problem: "От 10 до 1000 символов.",
-  demoUrl: "Полный адрес с http:// или https://.",
+  founderName: "2–80 символов",
+  projectName: "2–120 символов",
+  problem: "10–1000 символов",
+  demoUrl: "http:// или https://",
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -96,12 +96,18 @@ function Field({
   return (
     // Подгрид из четырёх строк (подпись, подсказка, поле, ошибка) выравнивает поля в соседних колонках
     <div className={`row-span-4 grid grid-rows-subgrid gap-y-0 ${className}`}>
-      <label htmlFor={name} className="display block text-xl font-semibold tracking-[0.01em] md:text-2xl">
-        {label}
-      </label>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <label htmlFor={name} className="display text-xl font-semibold tracking-[0.01em] md:text-2xl">
+          {label}
+        </label>
+        {fieldRules[name] && (
+          <span id={`${name}-rule`} className="label text-foreground/60">
+            {fieldRules[name]}
+          </span>
+        )}
+      </div>
       <p id={`${name}-hint`} className="mt-1.5 text-sm text-foreground/70">
         {hint}
-        {fieldRules[name] && <span className="sr-only"> {fieldRules[name]}</span>}
       </p>
       <div>{children}</div>
       <div>
@@ -168,8 +174,9 @@ export function ApplicationForm() {
       onChange: handleChange,
       onBlur: handleBlur,
       "aria-invalid": errors[name] ? true : undefined,
-      "aria-describedby": errors[name] ? `${name}-hint ${name}-error` : `${name}-hint`,
-      title: fieldRules[name],
+      "aria-describedby": [`${name}-hint`, fieldRules[name] && `${name}-rule`, errors[name] && `${name}-error`]
+        .filter(Boolean)
+        .join(" "),
       className: "field-input",
     };
   }

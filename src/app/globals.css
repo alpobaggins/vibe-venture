@@ -172,7 +172,8 @@
     transform: translateX(0.25rem);
   }
 
-  .btn-back:hover .arrow {
+  /* Стрелка «назад» сдвигается влево */
+  .back-link:hover .arrow {
     transform: translateX(-0.25rem);
   }
 

@@ -21,12 +21,10 @@ export function ApplySection() {
         </h2>
 
         <div className="mt-14 grid gap-12 lg:mt-20 lg:grid-cols-12 lg:gap-8">
-          <div className="flex flex-col gap-6 lg:col-span-4">
-            <p className="text-lead">
-              Vibe Venture рассматривает заявки ранних ИИ-команд. Отправка заявки означает участие
-              в первичном отборе, а не гарантию финансирования.
-            </p>
-          </div>
+          <p className="text-lead lg:col-span-4">
+            Vibe Venture рассматривает заявки ранних ИИ-команд. Отправка заявки означает участие
+            в первичном отборе, а не гарантию финансирования.
+          </p>
 
           <div className="lg:col-span-7 lg:col-start-6">
             <ApplicationForm />

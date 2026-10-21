@@ -45,9 +45,7 @@ export function BenefitsSection() {
               >
                 0{index + 1}
               </span>
-              <div className="flex flex-col gap-3 md:col-span-5">
-                <h3 className="display text-h3">{benefit.title}</h3>
-              </div>
+              <h3 className="display text-h3 md:col-span-5">{benefit.title}</h3>
               <p className="max-w-md text-lg text-foreground/80 md:col-span-4 md:self-end">{benefit.text}</p>
             </li>
           ))}

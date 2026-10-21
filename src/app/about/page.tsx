@@ -44,11 +44,9 @@ export default function AboutPage() {
     <>
       <section aria-labelledby="about-page-title" className="pb-16 pt-8 md:pb-24 md:pt-12">
         <div className="shell">
-          <div className="flex items-center justify-between gap-6">
-            <Link href="/" className="btn-back link label text-sm">
-              <span aria-hidden="true" className="arrow">←</span> На главную
-            </Link>
-          </div>
+          <Link href="/" className="back-link link label flex w-fit text-sm">
+            <span aria-hidden="true" className="arrow">←</span> На главную
+          </Link>
 
           <h1 id="about-page-title" className="display mt-16 text-hero md:mt-24 md:text-right">
             <span className="block">О Vibe</span> <span className="block">Venture</span>
@@ -160,7 +158,7 @@ export default function AboutPage() {
             <span className="block">о проекте?</span>
           </h2>
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Link href="/" className="btn btn-outline btn-back">
+            <Link href="/" className="btn btn-outline back-link">
               <span aria-hidden="true" className="arrow">←</span> Вернуться на главную
             </Link>
             <Link href="/#apply" className="btn btn-primary">
