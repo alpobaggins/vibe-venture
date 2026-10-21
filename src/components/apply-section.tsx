@@ -1,11 +1,4 @@
-const plannedFields = [
-  "Имя основателя",
-  "Контактный email",
-  "Название проекта",
-  "Стадия",
-  "Описание проблемы",
-  "Демо или репозиторий",
-];
+import { ApplicationForm } from "@/components/application-form";
 
 export function ApplySection() {
   return (
@@ -33,30 +26,10 @@ export function ApplySection() {
               Vibe Venture рассматривает заявки ранних ИИ-команд. Отправка заявки означает участие
               в первичном отборе, а не гарантию финансирования.
             </p>
-            <p className="text-foreground/70">
-              Шесть полей, одно из них необязательное — ссылка на демо или репозиторий.
-            </p>
           </div>
 
-          {/* Место под форму заявки — реализуется на этапе 6 */}
-          <div className="border-2 border-foreground lg:col-span-7 lg:col-start-6">
-            <div className="label flex justify-between gap-4 bg-foreground px-5 py-3.5 text-background">
-              <span>6 полей</span>
-            </div>
-            <ul aria-label="Поля будущей формы" className="grid gap-x-8 gap-y-7 p-6 sm:grid-cols-2 md:p-10">
-              {plannedFields.map((field) => (
-                <li key={field} className={field === "Описание проблемы" ? "sm:col-span-2" : undefined}>
-                  <span className="label text-foreground/60">{field}</span>
-                  <span
-                    aria-hidden="true"
-                    className={`mt-3 block border-b-2 border-dashed border-foreground/30 ${field === "Описание проблемы" ? "h-20" : "h-8"}`}
-                  />
-                </li>
-              ))}
-            </ul>
-            <p className="border-t border-foreground/20 px-6 py-4 text-sm text-foreground/60 md:px-10">
-              Форма заявки появится здесь на следующем этапе разработки.
-            </p>
+          <div className="lg:col-span-7 lg:col-start-6">
+            <ApplicationForm />
           </div>
         </div>
       </div>

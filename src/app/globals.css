@@ -216,6 +216,54 @@
     transform: scaleX(1);
   }
 
+  /* Поле формы: только нижняя граница, без рамки и скруглений */
+  .field-input {
+    display: block;
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 0;
+    border-bottom: 2px solid var(--foreground);
+    border-radius: 0;
+    background-color: transparent;
+    color: var(--foreground);
+    font-size: 1.125rem;
+    line-height: 1.4;
+    appearance: none;
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease;
+  }
+
+  .field-input:hover {
+    background-color: color-mix(in srgb, var(--muted) 40%, transparent);
+  }
+
+  .field-input:focus-visible {
+    outline: 3px solid var(--foreground);
+    outline-offset: 2px;
+    background-color: color-mix(in srgb, var(--yellow) 30%, transparent);
+  }
+
+  /* Граница толще на 2px, поэтому нижний отступ меньше на 2px: поле не съезжает относительно соседнего */
+  .field-input[aria-invalid="true"] {
+    padding-bottom: calc(0.75rem - 2px);
+    border-bottom: 4px solid var(--orange);
+  }
+
+  textarea.field-input {
+    min-height: 9rem;
+    resize: vertical;
+  }
+
+  select.field-input {
+    padding-right: 2.75rem;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23090909' stroke-width='2.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+  }
+
   /* Ступенчатая линия в hero «прорисовывается» при загрузке */
   .draw-path {
     stroke-dasharray: 1;
