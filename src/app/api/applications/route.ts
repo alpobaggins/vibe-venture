@@ -4,8 +4,9 @@ import {
   type ApplicationApiResponse,
   type ApplicationFieldErrors,
 } from "@/lib/applicationSchema";
+import { saveApplication } from "@/lib/db";
 
-// Сохранение (SQLite) подключается на следующем этапе
+// HTTP-слой: разбор JSON, проверка общей Zod-схемой, сохранение через модуль базы и ответ
 export async function POST(request: Request) {
   let body: unknown;
   try {
@@ -27,8 +28,22 @@ export async function POST(request: Request) {
     );
   }
 
-  return Response.json({
-    success: true,
-    message: "Данные заявки корректны, сохранение пока не подключено",
-  } satisfies ApplicationApiResponse);
+  try {
+    await saveApplication(result.data);
+  } catch (error) {
+    // Подробности ошибки остаются в логе сервера, пользователю — только безопасное сообщение
+    console.error("Не удалось сохранить заявку:", error);
+    return Response.json(
+      {
+        success: false,
+        message: "Не удалось сохранить заявку. Попробуйте отправить её ещё раз чуть позже.",
+      } satisfies ApplicationApiResponse,
+      { status: 500 },
+    );
+  }
+
+  return Response.json(
+    { success: true, message: "Заявка успешно отправлена" } satisfies ApplicationApiResponse,
+    { status: 201 },
+  );
 }

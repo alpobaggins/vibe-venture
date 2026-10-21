@@ -42,6 +42,10 @@ next-env.d.ts
 
 # local SQLite database and its service files
 /data/
+/data/app.db
+/data/app.db-journal
+/data/app.db-wal
+/data/app.db-shm
 *.db
 *.db-journal
 *.db-wal
