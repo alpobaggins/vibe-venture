@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ChangeEvent, type FocusEvent, type FormEvent, type ReactNode } from "react";
+import { useRef, useState, type ChangeEvent, type FocusEvent, type FormEvent, type ReactNode } from "react";
 import { z } from "zod";
 import {
   applicationSchema,
@@ -10,7 +10,7 @@ import {
   type ApplicationField,
   type ApplicationFieldErrors,
 } from "@/lib/applicationSchema";
-import { submitApplication } from "@/lib/submitApplication";
+import { submitApplication, type SubmitResult } from "@/lib/submitApplication";
 
 type FieldName = ApplicationField;
 // Состояние формы — сырые строки из полей; стадия до выбора пустая и поэтому не тип Stage
@@ -96,16 +96,22 @@ export function ApplicationForm() {
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<FormStatus>({ kind: "idle" });
+  // Синхронная защита от повторной отправки: ref меняется сразу, без ожидания перерисовки,
+  // поэтому второй клик или submit в том же такте её уже видит.
+  // sentValues — объект значений, успешно отправленный последним; любое изменение поля создаёт новый объект
+  const submitting = useRef(false);
+  const sentValues = useRef<Values | null>(null);
 
   const errorCount = fieldOrder.filter((name) => errors[name]).length;
   const isSubmitting = status.kind === "submitting";
+  const isSent = status.kind === "success";
 
   function handleChange(event: ChangeEvent<FieldElement>) {
     const name = event.target.name as FieldName;
     const value = event.target.value;
     setValues((prev) => ({ ...prev, [name]: value }));
-    // После успешной отправки изменённые данные — уже другая заявка, старое сообщение скрываем
-    if (status.kind === "success") setStatus({ kind: "idle" });
+    // После успешной отправки изменённые данные — уже другая заявка: кнопка снова доступна, сообщение скрываем
+    if (isSent) setStatus({ kind: "idle" });
     // Уже показанную ошибку пересчитываем на лету, чтобы она исчезла, как только поле исправлено
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   }
@@ -135,7 +141,7 @@ export function ApplicationForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isSubmitting) return;
+    if (submitting.current || sentValues.current === values) return;
     const form = event.currentTarget;
 
     const result = applicationSchema.safeParse(values);
@@ -144,13 +150,21 @@ export function ApplicationForm() {
       return;
     }
 
+    submitting.current = true;
     setErrors({});
     setStatus({ kind: "submitting" });
     // Отправляются уже проверенные данные с обрезанными пробелами; сервер проверяет их той же схемой
-    const response = await submitApplication(result.data);
-
-    if (response.status === "success") setStatus({ kind: "success", message: response.message });
-    else if (response.status === "invalid") showFieldErrors(form, response.errors);
+    let response: SubmitResult;
+    try {
+      response = await submitApplication(result.data);
+    } finally {
+      submitting.current = false;
+    }
+    if (response.status === "success") {
+      // Успешно отправленные значения запоминаем: пока поля не изменены, повторная отправка игнорируется
+      sentValues.current = values;
+      setStatus({ kind: "success", message: response.message });
+    } else if (response.status === "invalid") showFieldErrors(form, response.errors);
     else setStatus({ kind: "error", message: response.message });
   }
 
@@ -231,11 +245,13 @@ export function ApplicationForm() {
       </div>
 
       <div className="mt-12 flex flex-col gap-6 md:mt-14">
-        {/* aria-disabled вместо disabled: кнопка не теряет фокус, повторную отправку блокирует handleSubmit */}
+        {/* aria-disabled вместо disabled: кнопка не теряет фокус, повторную отправку блокируют submitting и sentValues */}
         <button
           type="submit"
-          aria-disabled={isSubmitting || undefined}
-          className="btn btn-primary min-h-16 w-full px-10 text-xl sm:w-fit"
+          aria-disabled={isSubmitting || isSent || undefined}
+          className={`btn btn-primary min-h-16 w-full px-10 text-xl sm:w-fit ${
+            isSent ? "cursor-not-allowed bg-muted hover:bg-muted hover:text-foreground" : ""
+          }`}
         >
           {isSubmitting ? (
             "Отправляем..."
