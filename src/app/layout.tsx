@@ -1,13 +1,22 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import localFont from "next/font/local";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import "./globals.css";
 
-// Временный шрифт шаблона; на этапе 2 заменяется на локальные Oswald и Inter
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// Шрифты лежат в репозитории (латиница + кириллица, лицензия OFL), сторонние CDN не нужны
+const oswald = localFont({
+  src: "./fonts/oswald-variable.woff2",
+  weight: "400 700",
+  variable: "--font-oswald",
+  display: "swap",
+});
+
+const inter = localFont({
+  src: "./fonts/inter-variable.woff2",
+  weight: "400 700",
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -21,11 +30,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ru" className={`${geistSans.variable} antialiased`}>
+    <html lang="ru" className={`${oswald.variable} ${inter.variable} antialiased`}>
       <body className="flex min-h-screen flex-col">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-foreground focus:px-4 focus:py-2 focus:text-background"
+          className="label sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-yellow focus:px-4 focus:py-3 focus:text-foreground"
         >
           Перейти к содержимому
         </a>

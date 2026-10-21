@@ -1,52 +1,64 @@
+import Link from "next/link";
+
 const questions = [
   {
-    question: "Кому подавать заявку?",
+    question: "На какой стадии можно подать заявку?",
     answer:
-      "Командам ИИ-стартапов на ранней стадии, у которых есть понятная проблема и прототип или MVP.",
+      "На самой ранней: от хорошо исследованной проблемы и прототипа до MVP с первыми пользователями. Главное — понимать, чью проблему решает продукт.",
   },
   {
-    question: "Нужна ли зарегистрированная компания?",
-    answer: "Для первичного отбора важнее проблема, продукт и команда, чем юридическое оформление.",
+    question: "Обязательно ли иметь MVP?",
+    answer:
+      "Нет. Достаточно прототипа, который показывает суть решения. Важнее, насколько глубоко команда понимает пользователя и его задачу.",
   },
   {
-    question: "Гарантирует ли заявка финансирование?",
+    question: "Какую поддержку можно получить?",
     answer:
-      "Нет. Заявка — это первый шаг: по её итогам мы решаем, можем ли быть полезны команде.",
+      "Микрогрант, продуктовую обратную связь, помощь с питчем и интро для пилотов. Набор зависит от стадии и задач команды и обсуждается после первичного отбора.",
   },
   {
-    question: "Что приложить к заявке?",
+    question: "Что происходит после отправки заявки?",
     answer:
-      "Короткое описание проблемы и, если есть, ссылку на демо или репозиторий. Презентация не обязательна.",
+      "Заявка попадает в первичный отбор: мы изучаем проблему, продукт и стадию проекта. Если увидим, чем можем помочь, свяжемся по указанному email. Отправка заявки не гарантирует финансирование.",
   },
 ];
 
 export function FaqSection() {
   return (
-    <section
-      id="faq"
-      aria-labelledby="faq-title"
-      className="bg-foreground px-4 py-20 text-background sm:px-8 lg:px-12 lg:py-32"
-    >
-      <div className="grid gap-12 lg:grid-cols-12">
-        <h2
-          id="faq-title"
-          className="text-[clamp(3rem,9vw,8rem)] font-black uppercase leading-[0.9] tracking-tighter lg:col-span-5"
-        >
+    <section id="faq" aria-labelledby="faq-title" className="section-y bg-foreground text-background">
+      <div className="shell">
+        <p className="label text-background/60">(04) — Вопросы</p>
+
+        <h2 id="faq-title" className="display mt-10 text-h1 lg:mt-14">
           Вопросы
         </h2>
 
-        <div className="lg:col-span-6 lg:col-start-7">
-          {questions.map((item) => (
-            <details key={item.question} className="group border-b border-muted/40 py-5">
-              <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 text-xl font-bold [&::-webkit-details-marker]:hidden">
-                {item.question}
-                <span aria-hidden="true" className="text-orange group-open:rotate-45">
-                  +
-                </span>
-              </summary>
-              <p className="mt-4 max-w-prose text-muted">{item.answer}</p>
-            </details>
-          ))}
+        <div className="mt-14 grid gap-12 lg:mt-20 lg:grid-cols-12 lg:gap-8">
+          <div className="flex flex-col items-start gap-6 lg:col-span-3">
+            <p className="text-background/70">
+              Коротко о том, как устроена работа с Vibe Venture. Подробности о подходе и отборе —
+              на отдельной странице.
+            </p>
+            <Link href="/about" className="link display text-lg font-semibold tracking-[0.02em] hover:text-yellow">
+              О Vibe Venture <span aria-hidden="true" className="arrow">→</span>
+            </Link>
+          </div>
+
+          <div className="border-t border-background/25 lg:col-span-8 lg:col-start-5">
+            {questions.map((item, index) => (
+              <details key={item.question} className="group border-b border-background/25">
+                <summary className="flex cursor-pointer list-none items-start gap-4 py-6 transition-colors hover:text-orange group-open:text-yellow md:gap-8 md:py-8">
+                  <span className="label w-6 shrink-0 pt-[0.45em] text-background/50">0{index + 1}</span>
+                  <span className="display flex-1 text-h4 font-semibold">{item.question}</span>
+                  <span aria-hidden="true" className="relative mt-1 size-6 shrink-0 transition-transform group-open:rotate-45 md:size-7">
+                    <span className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-current" />
+                    <span className="absolute left-1/2 top-0 h-full w-0.5 -translate-x-1/2 bg-current" />
+                  </span>
+                </summary>
+                <p className="max-w-2xl pb-8 pl-10 text-lead text-background/75 md:pl-14">{item.answer}</p>
+              </details>
+            ))}
+          </div>
         </div>
       </div>
     </section>

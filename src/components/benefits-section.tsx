@@ -1,51 +1,58 @@
 const benefits = [
   {
     title: "Микрогрант",
-    text: "Небольшая сумма, чтобы быстрее проверить ключевую гипотезу.",
+    text: "Небольшие средства на проверку ключевой гипотезы: вычисления, доступ к моделям и API, первые эксперименты с пользователями.",
   },
   {
     title: "Продуктовая обратная связь",
-    text: "Разбор продукта и пользовательского сценария от практиков.",
+    text: "Разбор продукта глазами пользователя: где теряется ценность, что упростить и какую метрику проверить следующей.",
   },
   {
     title: "Упаковка питча",
-    text: "Помощь с историей, структурой и формулировками для разговора с инвесторами.",
+    text: "Помогаем сформулировать проблему, решение и первые доказательства так, чтобы разговор с инвестором или партнёром шёл о сути.",
   },
   {
     title: "Пилотные интро",
-    text: "Знакомства с компаниями, которым может быть интересен пилот.",
+    text: "Знакомим с компаниями, которым может быть интересен пилот, — чтобы проверить продукт на реальной задаче, а не на демо-данных.",
   },
 ];
 
 export function BenefitsSection() {
   return (
-    <section id="benefits" aria-labelledby="benefits-title" className="px-4 py-20 sm:px-8 lg:px-12 lg:py-32">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <h2
-          id="benefits-title"
-          className="text-[clamp(3rem,9vw,8rem)] font-black uppercase leading-[0.9] tracking-tighter"
-        >
-          Плюсы
-        </h2>
-        <p className="max-w-sm text-lg">
-          Что команда может получить по итогам первичного отбора.
-        </p>
-      </div>
+    <section id="benefits" aria-labelledby="benefits-title" className="section-y">
+      <div className="shell">
+        <p className="label text-foreground/60">(03) — Плюсы</p>
 
-      <ol className="mt-12 border-t border-foreground lg:mt-20">
-        {benefits.map((benefit, index) => (
-          <li
-            key={benefit.title}
-            className="grid gap-2 border-b border-foreground py-6 md:grid-cols-12 md:items-baseline md:gap-6"
-          >
-            <span className="text-sm font-bold md:col-span-1">0{index + 1}</span>
-            <h3 className="text-3xl font-black uppercase leading-none tracking-tight sm:text-5xl md:col-span-7">
-              {benefit.title}
-            </h3>
-            <p className="md:col-span-4">{benefit.text}</p>
-          </li>
-        ))}
-      </ol>
+        <div className="mt-10 grid gap-8 lg:mt-14 lg:grid-cols-12">
+          <h2 id="benefits-title" className="display text-h2 lg:col-span-8">
+            <span className="block">Что получает</span> <span className="block">команда</span>
+          </h2>
+          <p className="text-lead lg:col-span-4 lg:self-end">
+            Четыре направления поддержки. Конкретный набор зависит от стадии проекта и обсуждается
+            после первичного отбора.
+          </p>
+        </div>
+
+        <ol className="mt-16 border-t-2 border-foreground md:mt-24">
+          {benefits.map((benefit, index) => (
+            <li
+              key={benefit.title}
+              className="group grid gap-x-8 gap-y-4 border-b border-foreground py-8 md:grid-cols-12 md:py-12"
+            >
+              <span
+                aria-hidden="true"
+                className="display text-h1 text-muted transition-colors group-hover:text-orange md:col-span-3"
+              >
+                0{index + 1}
+              </span>
+              <div className="flex flex-col gap-3 md:col-span-5">
+                <h3 className="display text-h3">{benefit.title}</h3>
+              </div>
+              <p className="max-w-md text-lg text-foreground/80 md:col-span-4 md:self-end">{benefit.text}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
     </section>
   );
 }

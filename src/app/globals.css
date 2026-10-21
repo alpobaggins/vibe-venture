@@ -1,11 +1,25 @@
 @import "tailwindcss";
 
+/* ---------- Токены ---------- */
+
 :root {
   --background: #f7f7f5;
   --foreground: #090909;
   --orange: #ff623e;
   --yellow: #f6d534;
   --muted: #dfdfdb;
+
+  /* Боковые поля, ширина контейнера и вертикальный ритм секций */
+  --gutter: clamp(1rem, 3.5vw, 3rem);
+  --container-max: 1600px;
+  --section-y: clamp(5rem, 11vw, 10rem);
+  --header-h: 6.5rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-h: 4.5rem;
+  }
 }
 
 @theme inline {
@@ -14,26 +28,236 @@
   --color-orange: var(--orange);
   --color-yellow: var(--yellow);
   --color-muted: var(--muted);
-  --font-sans: var(--font-geist-sans);
+
+  --font-display: var(--font-oswald), "Arial Narrow", sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /* Шкала заголовков: Oswald Bold, верхний регистр, плотный интерлиньяж */
+  --text-hero: clamp(4.5rem, 21vw, 20rem);
+  --text-hero--line-height: 0.86;
+  --text-hero--letter-spacing: -0.02em;
+  --text-h1: clamp(3.5rem, 13vw, 12.5rem);
+  --text-h1--line-height: 0.84;
+  --text-h1--letter-spacing: -0.015em;
+  --text-h2: clamp(3rem, 9.5vw, 9rem);
+  --text-h2--line-height: 0.86;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h3: clamp(2rem, 4.4vw, 4rem);
+  --text-h3--line-height: 0.95;
+  --text-h4: clamp(1.375rem, 2.2vw, 2rem);
+  --text-h4--line-height: 1.05;
+
+  /* Текст: Inter */
+  --text-lead: clamp(1.125rem, 1.5vw, 1.375rem);
+  --text-lead--line-height: 1.45;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1;
+  --text-label--letter-spacing: 0.08em;
 }
 
-html {
-  scroll-behavior: smooth;
+/* Контейнер страницы: полная ширина с полями, ограниченная на очень широких экранах */
+@utility shell {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+@utility section-y {
+  padding-block: var(--section-y);
+}
+
+/* Базовый стиль крупных заголовков; размер задаётся отдельно: text-hero, text-h1 … text-h4 */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+}
+
+/* Небольшая метка: (01) ABOUT, EARLY-STAGE AI */
+@utility label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-label);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- База ---------- */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  /* Якорные секции не прячутся под липкой шапкой */
+  [id] {
+    scroll-margin-top: var(--header-h);
+  }
+
+  ::selection {
+    background: var(--yellow);
+    color: var(--foreground);
+  }
+
+  /* Цвет обводки берётся из текста, поэтому фокус виден и на светлых, и на тёмных секциях */
+  :focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+/* ---------- Компоненты ---------- */
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.875rem;
+    min-height: 3.5rem;
+    padding: 1rem 1.75rem;
+    border: 2px solid var(--foreground);
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+
+  .btn-primary {
+    background: var(--orange);
+    color: var(--foreground);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--foreground);
+  }
+
+  .btn-primary:hover,
+  .btn-outline:hover {
+    background: var(--foreground);
+    color: var(--background);
+  }
+
+  /* Стрелка набирается Inter: в Oswald нет этого символа */
+  .arrow {
+    font-family: var(--font-sans);
+    font-weight: 400;
+    transition: transform 150ms ease;
+  }
+
+  .btn:hover .arrow,
+  .link:hover .arrow {
+    transform: translateX(0.25rem);
+  }
+
+  .btn-back:hover .arrow {
+    transform: translateX(-0.25rem);
+  }
+
+  /* Текстовая ссылка с оранжевым подчёркиванием */
+  .link {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.35em;
+    text-decoration-color: var(--orange);
+    transition:
+      color 150ms ease,
+      text-decoration-color 150ms ease;
+  }
+
+  .link:hover {
+    text-decoration-color: currentColor;
+  }
+
+  .nav-link {
+    position: relative;
+    transition: color 150ms ease;
+  }
+
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.3rem;
+    height: 2px;
+    background: var(--orange);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 150ms ease;
+  }
+
+  .nav-link:hover::after {
+    transform: scaleX(1);
+  }
+
+  /* Ступенчатая линия в hero «прорисовывается» при загрузке */
+  .draw-path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 1.4s 0.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+
+  .pop-in {
+    opacity: 0;
+    animation: pop 0.4s 1.4s ease-out forwards;
+  }
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pop {
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-}
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 
-/* Цвет обводки берётся из текста, поэтому фокус виден и на светлых, и на тёмных секциях */
-:focus-visible {
-  outline: 3px solid currentColor;
-  outline-offset: 3px;
+  .draw-path {
+    stroke-dashoffset: 0;
+  }
+
+  .pop-in {
+    opacity: 1;
+  }
 }
