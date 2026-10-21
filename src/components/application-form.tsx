@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, type ChangeEvent, type FocusEvent, type FormEvent, type ReactNode } from "react";
+import { z } from "zod";
+import {
+  applicationSchema,
+  limits,
+  stageLabels,
+  stages,
+  type ApplicationField,
+} from "@/lib/applicationSchema";
 
-const stages = [
-  { value: "idea", label: "Идея" },
-  { value: "prototype", label: "Прототип" },
-  { value: "mvp", label: "MVP" },
-  { value: "early_users", label: "Первые пользователи" },
-];
-
-type FieldName = "founderName" | "email" | "projectName" | "stage" | "problem" | "demoUrl";
+type FieldName = ApplicationField;
+// Состояние формы — сырые строки из полей; стадия до выбора пустая и поэтому не тип Stage
 type Values = Record<FieldName, string>;
 type Errors = Partial<Record<FieldName, string>>;
 type FieldElement = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -27,55 +29,16 @@ const initialValues: Values = {
 
 // Короткие ограничения видны рядом с подписью и входят в описание поля для скринридеров
 const fieldRules: Partial<Record<FieldName, string>> = {
-  founderName: "2–80 символов",
-  projectName: "2–120 символов",
-  problem: "10–1000 символов",
+  founderName: `${limits.founderName.min}–${limits.founderName.max} символов`,
+  projectName: `${limits.projectName.min}–${limits.projectName.max} символов`,
+  problem: `${limits.problem.min}–${limits.problem.max} символов`,
   demoUrl: "http:// или https://",
 };
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function isHttpUrl(value: string) {
-  try {
-    const url = new URL(value);
-    return (url.protocol === "http:" || url.protocol === "https:") && url.hostname.includes(".");
-  } catch {
-    return false;
-  }
-}
-
-// Базовая клиентская проверка; позже её заменит общая Zod-схема для клиента и сервера
-function validateField(name: FieldName, rawValue: string): string | undefined {
-  const value = rawValue.trim();
-
-  switch (name) {
-    case "founderName":
-      if (!value) return "Укажите имя основателя.";
-      if (value.length < 2 || value.length > 80) return "Имя должно содержать от 2 до 80 символов.";
-      return;
-    case "email":
-      if (!value) return "Укажите email для связи.";
-      if (value.length > 254) return "Email не должен быть длиннее 254 символов.";
-      if (!emailPattern.test(value)) return "Проверьте email — он должен выглядеть как name@example.com.";
-      return;
-    case "projectName":
-      if (!value) return "Укажите название проекта.";
-      if (value.length < 2 || value.length > 120) return "Название должно содержать от 2 до 120 символов.";
-      return;
-    case "stage":
-      if (!value) return "Выберите стадию проекта.";
-      if (!stages.some((stage) => stage.value === value)) return "Выберите стадию из списка.";
-      return;
-    case "problem":
-      if (!value) return "Опишите проблему, которую решает проект.";
-      if (value.length < 10 || value.length > 1000) return "Описание должно содержать от 10 до 1000 символов.";
-      return;
-    case "demoUrl":
-      if (!value) return;
-      if (value.length > 2048) return "Ссылка не должна быть длиннее 2048 символов.";
-      if (!isHttpUrl(value)) return "Укажите полную ссылку, которая начинается с http:// или https://.";
-      return;
-  }
+// Проверка одного поля той же схемой, что и на сервере
+function validateField(name: FieldName, value: string): string | undefined {
+  const result = applicationSchema.shape[name].safeParse(value);
+  return result.success ? undefined : result.error.issues[0]?.message;
 }
 
 function Field({
@@ -149,10 +112,14 @@ export function ApplicationForm() {
     event.preventDefault();
     const form = event.currentTarget;
 
+    const result = applicationSchema.safeParse(values);
     const nextErrors: Errors = {};
-    for (const name of fieldOrder) {
-      const error = validateField(name, values[name]);
-      if (error) nextErrors[name] = error;
+    if (!result.success) {
+      const fieldErrors = z.flattenError(result.error).fieldErrors;
+      for (const name of fieldOrder) {
+        const message = fieldErrors[name]?.[0];
+        if (message) nextErrors[name] = message;
+      }
     }
     setErrors(nextErrors);
 
@@ -185,23 +152,23 @@ export function ApplicationForm() {
     <form noValidate onSubmit={handleSubmit} aria-label="Заявка на первичный отбор" className="border-t-2 border-foreground pt-6">
       <div className="grid gap-x-10 gap-y-10 sm:grid-cols-2 md:gap-y-12">
         <Field name="founderName" label="Имя основателя" hint="Как к вам обращаться." error={errors.founderName}>
-          <input {...fieldProps("founderName")} type="text" autoComplete="name" maxLength={80} required />
+          <input {...fieldProps("founderName")} type="text" autoComplete="name" maxLength={limits.founderName.max} required />
         </Field>
 
         <Field name="email" label="Контактный email" hint="Напишем сюда, если увидим, чем можем помочь." error={errors.email}>
-          <input {...fieldProps("email")} type="email" inputMode="email" autoComplete="email" maxLength={254} required />
+          <input {...fieldProps("email")} type="email" inputMode="email" autoComplete="email" maxLength={limits.email.max} required />
         </Field>
 
         <Field name="projectName" label="Название проекта" hint="Рабочее название подойдёт." error={errors.projectName}>
-          <input {...fieldProps("projectName")} type="text" autoComplete="organization" maxLength={120} required />
+          <input {...fieldProps("projectName")} type="text" autoComplete="organization" maxLength={limits.projectName.max} required />
         </Field>
 
         <Field name="stage" label="Стадия проекта" hint="Выберите вариант, ближайший к текущему состоянию продукта." error={errors.stage}>
           <select {...fieldProps("stage")} required>
             <option value="">Не выбрано</option>
             {stages.map((stage) => (
-              <option key={stage.value} value={stage.value}>
-                {stage.label}
+              <option key={stage} value={stage}>
+                {stageLabels[stage]}
               </option>
             ))}
           </select>
@@ -214,9 +181,9 @@ export function ApplicationForm() {
           error={errors.problem}
           className="sm:col-span-2"
         >
-          <textarea {...fieldProps("problem")} rows={5} maxLength={1000} required />
+          <textarea {...fieldProps("problem")} rows={5} maxLength={limits.problem.max} required />
           <p aria-hidden="true" className="mt-2 text-right text-sm text-foreground/60">
-            {values.problem.trim().length} / 1000
+            {values.problem.trim().length} / {limits.problem.max}
           </p>
         </Field>
 
@@ -231,7 +198,7 @@ export function ApplicationForm() {
           error={errors.demoUrl}
           className="sm:col-span-2"
         >
-          <input {...fieldProps("demoUrl")} type="url" inputMode="url" autoComplete="url" maxLength={2048} />
+          <input {...fieldProps("demoUrl")} type="url" inputMode="url" autoComplete="url" maxLength={limits.demoUrl.max} />
         </Field>
       </div>
 
