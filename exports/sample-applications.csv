@@ -1,0 +1,7 @@
+﻿id,founder_name,email,project_name,stage,problem,demo_url,created_at
+1,Мария Лебедева,maria.lebedeva@example.com,Summa AI,mvp,Юристам долго искать нужные пункты в договорах. Summa AI выделяет риски и сроки.,https://example.com/summa-demo,2026-10-20T09:15:00.000Z
+2,"Олег ""Кот"" Сафронов",oleg@example.org,"Кот, Пёс и Ко",prototype,"Владельцы питомцев путают графики прививок, корма и визитов к ветеринару.",,2026-10-20T14:42:10.000Z
+3,Elena Petrova,elena.petrova@example.net,Vibe Notes,early_users,"Командам поддержки трудно находить ответы:
+— в старых тикетах;
+— в базе знаний, разбросанной по 3 сервисам.",https://github.com/example/vibe-notes,2026-10-21T11:05:33.000Z
+4,Тимур Ахметов,timur@example.com,"Голос ""Ассистента""",idea,"Пожилым людям сложно пользоваться госуслугами, нужен голосовой помощник, который объясняет шаги, без жаргона.",,2026-10-22T08:30:00.000Z

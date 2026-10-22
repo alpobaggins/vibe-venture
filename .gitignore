@@ -54,5 +54,6 @@ next-env.d.ts
 *.sqlite3
 *.sqlite-journal
 
-# local CSV exports
-/exports/
+# local CSV exports; only the fictional sample is committed for reviewers
+/exports/*
+!/exports/sample-applications.csv
